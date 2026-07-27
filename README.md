@@ -37,16 +37,26 @@ Reload with `⌘⇧,`.
 
 ### If you use cmux
 
-[cmux](https://github.com/manaflow-ai/cmux) embeds Ghostty and reads **the same** `~/.config/ghostty/config`. Two things cost me an hour, so they're worth writing down:
+[cmux](https://github.com/manaflow-ai/cmux) embeds Ghostty, and it ships a CLI that does all of this for you:
 
-- The terminal theme is **not** a `cmux.json` key. `browser.theme` in that file is the embedded web browser and only accepts `system`/`light`/`dark`.
-- Setting a theme leaves cmux's sidebar and tabs light. That's separate, in `~/.config/cmux/cmux.json`:
+```bash
+cmux themes                      # current light/dark + the config path in use
+cmux themes set "TokyoNight Storm"
+cmux reload-config               # reloads Ghostty + cmux.json, refreshes panes in place
+cmux config doctor               # validates cmux.json and prints why it failed
+```
+
+Four things cost me an hour, so they're worth writing down:
+
+- **A theme change needs a reload.** Ghostty reads its config at startup, so editing the file does nothing to an already-running app — and nothing warns you. `cmux reload-config` refreshes panes in place; no restart.
+- **cmux keeps its own Ghostty config.** `cmux themes` reports the active path, which is `~/Library/Application Support/com.cmuxterm.app/config.ghostty`, not the `~/.config/ghostty/config` that standalone Ghostty reads. Setting both is harmless if you use both apps.
+- **The terminal theme is not a `cmux.json` key.** `browser.theme` in that file is the embedded web browser and only takes `system`/`light`/`dark`.
+- **The chrome is separate.** A theme alone leaves the sidebar and tabs light:
   ```json
   { "app": { "appearance": "dark" } }
   ```
-- Existing panes may keep their old colors after a reload. Open a new pane to check.
 
-A malformed `cmux.json` is discarded **whole**, silently, with no error in the UI — so a single smart quote from a text editor will make every setting in it appear to do nothing. Validate with `python3 -m json.tool`, and if you're on macOS, `defaults write -g NSAutomaticQuoteSubstitutionEnabled -bool false`.
+A malformed `cmux.json` is discarded **whole**, silently, with no error in the UI — one smart quote from a text editor makes every setting in it appear to do nothing. `cmux config doctor` catches it. On macOS, also worth turning the cause off: `defaults write -g NSAutomaticQuoteSubstitutionEnabled -bool false`.
 
 ## Keeping it current
 
